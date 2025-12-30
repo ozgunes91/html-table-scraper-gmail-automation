@@ -23,7 +23,7 @@ jobs:
           python -m pip install --upgrade pip
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-       - name: Execute scraper
+      - name: Execute scraper
         env:
           SCRAPER_SMTP_USER: ${{ secrets.GMAIL_USER }}
           SCRAPER_SMTP_PASSWORD: ${{ secrets.GMAIL_PASS }}
