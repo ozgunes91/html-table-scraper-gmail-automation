@@ -29,3 +29,9 @@ jobs:
           GMAIL_PASS: ${{ secrets.GMAIL_PASS }}
           TARGET_EMAIL: ${{ secrets.TARGET_EMAIL }}
         run: python html_table_scraper.py
+
+      - name: Upload Excel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scraped_excel_output
+          path: outputs/*.xlsx
