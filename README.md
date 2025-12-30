@@ -28,10 +28,6 @@ This script:
 - Excel export to `/outputs/`
 - Gmail SMTP automation with file attachment
 - Secure `.env` variable handling (no exposed passwords)
-- Fully compatible with:
-  - n8n (Execute Command)
-  - Make.com
-  - Cron-based automation
 
 ---
 
