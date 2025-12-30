@@ -1,75 +1,76 @@
-# HTML Table Scraper + Excel Export + Gmail Automation
 
-This project demonstrates a complete automation workflow using Python.  
-It performs **web scraping**, **data cleaning**, **Excel export**, and **automated email delivery** via Gmail — all while keeping credentials secure using a `.env` file.
+# **HTML Table Scraper + Excel Export + Gmail Automation**
 
----
+A fully automated pipeline that **scrapes HTML tables**, **cleans the data**, **exports Excel output**, and **delivers the final file via Gmail** — all powered by Python and enhanced with **GitHub Actions automation**.
 
-## 🚀 Overview
+This repository demonstrates:
 
-This script:
-
-1. Fetches an HTML page from Wikipedia  
-2. Extracts the first table on the page  
-3. Cleans and normalizes the dataset  
-4. Exports the cleaned table into Excel  
-5. Sends the Excel file via Gmail automatically  
-6. Ensures security using environment variables (no passwords in code)
-
+- Web scraping  
+- Data cleaning  
+- Excel export  
+- Secure Gmail automation  
+- CI workflow with GitHub Actions  
+- Artifact-based file delivery (for n8n integration)
 
 ---
 
-## ✨ Features
+## 📁 **Project Structure**
 
-- Live web scraping with `requests` + `BeautifulSoup`
-- Automatic HTML table extraction using `pandas.read_html`
-- MultiIndex → simple snake_case column normalization
-- Rank-sorted clean final dataset
-- Excel export to `/outputs/`
-- Gmail SMTP automation with file attachment
-- Secure `.env` variable handling (no exposed passwords)
-
----
-
-## 📁 Project Structure
-
-```text
-html_table_project/
-├── html_table_scraper.py   # Main automation script
-├── requirements.txt        # Dependency list
-├── README.md               # Documentation
-├── .gitignore              # Ignores .env and outputs
-├── outputs/                # Auto-generated Excel files
-└── .env                    # NOT uploaded to GitHub (credentials)
+```
+html-table-scraper-gmail-automation/
+├── html_table_scraper.py        # Main Python scraper script
+├── requirements.txt             # Python dependencies
+├── README.md                    # Main documentation (this file)
+├── .env                         # Email credentials (not committed)
+└── .github/
+    └── workflows/
+        └── automation.yml       # GitHub Actions automation pipeline
 ```
 
----
-
-## 🔐 Environment Variables
-
-Create a `.env` file in the project directory:
-
-```env
-SCRAPER_SMTP_USER=your_gmail_address@gmail.com
-SCRAPER_SMTP_PASSWORD=your_16_character_gmail_app_password
-```
-
-These variables are loaded automatically:
-
-```python
-from dotenv import load_dotenv
-load_dotenv()
-```
-
-### ⚠ Security Notes
-
-- `.env` is ignored via `.gitignore`  
-- Credentials are never visible in code or commits  
-- Safe for public repositories  
-- App passwords are required (not your real Gmail password)
+> `automation.yml` automatically runs the scraper, generates the Excel file, and uploads it as an artifact.
 
 ---
 
+## 🚀 **Features**
+
+✔ Scrapes HTML table data  
+✔ Parses + cleans + normalizes records  
+✔ Saves Excel output  
+✔ Sends final file via Gmail  
+✔ Credential-safe environment via `.env`  
+✔ GitHub Actions triggers script in the cloud  
+✔ Artifact output is downloadable by systems like **n8n**
+
+---
+
+## 🔐 **Environment Variables**
+
+Create a `.env` file like this:
+
+```
+SCRAPER_SMTP_USER=your_email@gmail.com
+SCRAPER_SMTP_PASSWORD=your_gmail_app_password
+```
+- Gmail requires an App Password (16-character code). Your normal account password will NOT work.
+---
+
+## ⚙️ **GitHub Actions (automation.yml)**
+
+Workflow performs:
+
+1. Install Python & dependencies  
+2. Run `html_table_scraper.py`  
+3. Save the generated Excel file  
+4. Upload Excel as **GitHub Artifact**  
+5. Allow external automation tools to fetch the artifact  
+
+Triggered via:
+
+- Manual dispatch  
+- n8n Webhook / schedule  
+- Cron (if enabled)
+
+---
 ## 📦 Installation
 
 ### 1. Clone the repo
@@ -148,4 +149,3 @@ Your actual Gmail password is never used or exposed.
 
 **Özge Güneş**  
 Python Automation · Web Scraping · Data Cleaning · Process Automation  
-
