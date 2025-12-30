@@ -144,6 +144,11 @@ Your actual Gmail password is never used or exposed.
 - Turn the workflow into an automated n8n pipeline  
 
 ---
+## 🔗 Additional Documentation
+
+Even when the file is successfully delivered via e-mail, the latest Excel output can still be downloaded directly from n8n as well.
+
+📘 n8n Automation Docs → [docs/README_N8N.md](docs/README_N8N.md)
 
 ## 👩‍💻 Author
 
