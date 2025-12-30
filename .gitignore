@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual env'ler
+.env
+venv/
+.venv/
+
+# Local config / secrets
+.env
+
+# IDE / OS junk
+.idea/
+.vscode/
+.DS_Store
+
+# Output files
+outputs/
+logs/
+*.log
