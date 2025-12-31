@@ -1,7 +1,7 @@
 <div align="center">
 
-# 🔁 **n8n Workflow Integration — GitHub Trigger + Artifact Downloader**
-### **Cloud Automation · CI/CD Orchestration · Modern Data Delivery**
+# 🔁 **n8n Workflow — GitHub Trigger + Excel Artifact Downloader**
+### Cloud Automation · CI/CD Orchestration · GitHub API Integration
 
 ![n8n](https://img.shields.io/badge/n8n-Automation-orange?style=for-the-badge)
 ![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-blue?style=for-the-badge)
@@ -11,216 +11,123 @@
 
 ---
 
-# **n8n Integration — GitHub Workflow Trigger + Artifact Downloader**
+# 🎯 Purpose
 
-This document describes the **n8n automation workflow** that triggers the GitHub Actions pipeline, retrieves the **latest Excel artifact**, and presents it as a **downloadable file** inside n8n.
+This workflow allows n8n to:
 
-Your pipeline becomes:
-
-- Fully automated  
-- Cloud-executed  
-- Download-ready  
-- E-mail independent (even if the file is already sent via e-mail, it can also be downloaded directly through n8n)
+1. Trigger GitHub Actions  
+2. Wait for the Python script to execute  
+3. Fetch the latest Excel artifact  
+4. Provide the artifact directly as a downloadable file  
 
 ---
 
-## 🎯 **Purpose**
+# 🔧 Node‑by‑Node Breakdown
 
-The n8n workflow:
-
-1. Triggers the GitHub Actions workflow  
-2. Waits for it to finish  
-3. Fetches the list of workflow artifacts  
-4. Selects the **latest** Excel file  
-5. Makes it **instantly downloadable** inside n8n  
-
-This allows you to access the scraper output **without entering GitHub or Gmail**.
+## **1️⃣ Schedule / Manual Trigger (Start Node)**  
+Starts the pipeline either at a set time (cron) or manually.
 
 ---
 
-## 🔄 **Workflow Overview**
+## **2️⃣ HTTP Request — Trigger GitHub Actions**
 
-```
-GitHub Workflow Dispatch
-    ↓
-HTTP Request (dispatch /automation.yml)
-    ↓
-GitHub: List Artifacts
-    ↓
-Code Node: Pick Latest Artifact
-    ↓
-Save Excel Output (Download Artifact)
-```
-
----
-
-## 🧩 **Node-by-Node Explanation**
-
-### **1️⃣ GitHub Workflow Dispatch**
-Triggered manually or through Schedule Trigger.
-
-Purpose: Start GitHub Actions run.
-
----
-
-### **2️⃣ HTTP Request – Dispatch automation.yml**
-
-```
+```http
 POST https://api.github.com/repos/<user>/<repo>/actions/workflows/automation.yml/dispatches
-```
-
-Headers:
-
-```
-Authorization: Bearer <PAT>
+Authorization: Bearer <GitHub PAT>
 Accept: application/vnd.github+json
 ```
 
----
-
-### **3️⃣ GitHub: List Artifacts**
-Fetches all artifacts created by recent workflow runs.
+This invokes the `workflow_dispatch` event.
 
 ---
 
-### **4️⃣ Code Node — Pick Latest Artifact**
+## **3️⃣ GitHub API — List Artifacts**
 
-```js
-// Extract the JSON payload returned from the previous HTTP Request node
+Fetches all workflow artifacts.  
+Returns JSON:
+
+```json
+{
+  "total_count": ...,
+  "artifacts": [...]
+}
+```
+
+---
+
+## **4️⃣ Code Node — Pick Latest Artifact**
+
+```javascript
 const data = items[0].json;
-
-// GitHub API response structure: { total_count, artifacts: [...] }
 const artifacts = data.artifacts || [];
 
-// If no artifacts exist, stop the workflow by returning an empty array
-if (artifacts.length === 0) {
-	return [];
-}
+if (!artifacts.length) return [];
 
-// Sort artifacts by creation date (newest first)
-artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+artifacts.sort((a, b) =>
+  new Date(b.created_at) - new Date(a.created_at)
+);
 
-// Select the most recent artifact
 const latest = artifacts[0];
 
-// Return only the latest artifact fields needed for download
 return [
-	{
-		json: {
-			artifact_id: latest.id,
-			artifact_name: latest.name,
-			download_url: latest.archive_download_url,
-			created_at: latest.created_at
-		}
-	}
+  {
+    json: {
+      artifact_id: latest.id,
+      artifact_name: latest.name,
+      download_url: latest.archive_download_url,
+      created_at: latest.created_at
+    }
+  }
 ];
-
 ```
 
-This ensures **the most recent Excel file** is always selected.
+Always selects the most recent Excel build.
 
 ---
 
-## **5️⃣ Save Excel Output (Download Artifact)**
+## **5️⃣ Download Artifact (Binary File Node)**
 
-This node:
-
-- Downloads the artifact ZIP  
-- Makes it visible in **n8n Execution → Binary**  
-- Shows a **Download** button for the user  
-
-📌 *This is the recommended approach — simple and clean.*
+- Downloads the ZIP containing the Excel file  
+- Makes it available inside n8n UI  
+- Allows one‑click download  
 
 ---
 
-## ⏱ **Automation / Scheduling**
+# 📌 Key Clarifications
 
-You may trigger workflow via:
+### ✔ n8n **does not send email**  
+The email is always sent by the Python script (locally or in GitHub Actions).
 
-- Daily at a specific time  
-- Hourly  
-- Every X minutes  
-- Manual execution  
+### ✔ GitHub Actions runs the scraper  
+n8n only triggers it and retrieves the output.
 
-Using the **Schedule Trigger** node.
----
-
-## 📌 Clarification: How Email Delivery Works (Important)
-
-This pipeline supports **three different execution environments**, and each environment handles email differently.
-To avoid confusion, here is the exact and real behavior:
-
-### ✔ 1. Local Python Script  
-Email **IS sent** automatically, as long as `.env` contains valid SMTP credentials.  
-This includes:
-- Running the script manually on your machine  
-- Running it as part of local automation  
-
-### ✔ 2. GitHub Actions  
-Email **IS sent** automatically when the workflow runs — **if Gmail SMTP credentials are stored in GitHub Secrets.**  
-This means:
-- Running “Run workflow” from the Actions tab sends an email  
-- Triggering GitHub Actions from n8n also sends an email  
-- The email is sent by the Python script inside GitHub Actions, not by n8n  
-
-### ✔ 3. n8n  
-n8n **does NOT send the email itself** unless a Gmail node is explicitly added.  
-Instead:
-- n8n triggers GitHub Actions  
-- GitHub Actions runs the Python script  
-- The Python script sends the email  
-- n8n only downloads the latest Excel artifact for UI access  
-
-### ✔ Summary  
-- **Email is always sent by the Python script**, never by n8n  
-- n8n only triggers the workflow and retrieves the artifact  
-- GitHub Actions + Python = email automation  
-- n8n = artifact automation + optional scheduling  
-
-This ensures the documentation matches the real technical behavior of the workflow.
-
-
+### ✔ n8n can run autonomously  
+Thanks to the schedule node.
 
 ---
 
-## 🌟 **Why This Pipeline Is Professional**
+# 🧠 Full Automation View
 
-✔ GitHub Actions handles heavy automation  
-✔ Python script runs both locally & in cloud  
-✔ Excel file never stays on GitHub — securely stored as artifact  
-✔ n8n provides UI-based, instant download  
-✔ Emails + artifacts = redundancy  
-✔ Tam entegrasyon: Python → GitHub Actions → n8n
-
----
-
-## 🧠 **Architecture Summary**
-
+```text
+n8n trigger
+    ↓
+HTTP → workflow_dispatch
+    ↓
+GitHub Actions
+    ↓
+Python:
+ scrape → clean → Excel → email → artifact
+    ↓
+Artifact Storage
+    ↓
+n8n:
+ fetch → pick latest → download
 ```
-Python Script
-    ↓
-GitHub Actions (automation.yml)
-    ↓
-Artifact Upload
-    ↓
-n8n Workflow
-    ↓
-Download as Excel
-```
-
-Lightweight, secure, scalable.
-
----
-
-## 👩‍💻 Author
-
-**Özge Güneş**  
-Workflow Engineering · Python Automation · CI/CD  
-GitHub: https://github.com/ozgunes91  
 
 ---
 
 <div align="center">
 
+### ⚡ *Automation engineered with precision by **Özge Güneş***  
 
 </div>
