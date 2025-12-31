@@ -1,3 +1,16 @@
+<div align="center">
+
+# 🔁 **n8n Workflow Integration — GitHub Trigger + Artifact Downloader**
+### **Cloud Automation · CI/CD Orchestration · Modern Data Delivery**
+
+![n8n](https://img.shields.io/badge/n8n-Automation-orange?style=for-the-badge)
+![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-blue?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-Scraper-yellow?style=for-the-badge)
+
+</div>
+
+---
+
 # **n8n Integration — GitHub Workflow Trigger + Artifact Downloader**
 
 This document describes the **n8n automation workflow** that triggers the GitHub Actions pipeline, retrieves the **latest Excel artifact**, and presents it as a **downloadable file** inside n8n.
@@ -130,6 +143,43 @@ You may trigger workflow via:
 - Manual execution  
 
 Using the **Schedule Trigger** node.
+---
+
+## 📌 Clarification: How Email Delivery Works (Important)
+
+This pipeline supports **three different execution environments**, and each environment handles email differently.
+To avoid confusion, here is the exact and real behavior:
+
+### ✔ 1. Local Python Script  
+Email **IS sent** automatically, as long as `.env` contains valid SMTP credentials.  
+This includes:
+- Running the script manually on your machine  
+- Running it as part of local automation  
+
+### ✔ 2. GitHub Actions  
+Email **IS sent** automatically when the workflow runs — **if Gmail SMTP credentials are stored in GitHub Secrets.**  
+This means:
+- Running “Run workflow” from the Actions tab sends an email  
+- Triggering GitHub Actions from n8n also sends an email  
+- The email is sent by the Python script inside GitHub Actions, not by n8n  
+
+### ✔ 3. n8n  
+n8n **does NOT send the email itself** unless a Gmail node is explicitly added.  
+Instead:
+- n8n triggers GitHub Actions  
+- GitHub Actions runs the Python script  
+- The Python script sends the email  
+- n8n only downloads the latest Excel artifact for UI access  
+
+### ✔ Summary  
+- **Email is always sent by the Python script**, never by n8n  
+- n8n only triggers the workflow and retrieves the artifact  
+- GitHub Actions + Python = email automation  
+- n8n = artifact automation + optional scheduling  
+
+This ensures the documentation matches the real technical behavior of the workflow.
+
+
 
 ---
 
@@ -167,3 +217,10 @@ Lightweight, secure, scalable.
 **Özge Güneş**  
 Workflow Engineering · Python Automation · CI/CD  
 GitHub: https://github.com/ozgunes91  
+
+---
+
+<div align="center">
+
+
+</div>
