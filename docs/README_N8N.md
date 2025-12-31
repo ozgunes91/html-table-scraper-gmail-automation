@@ -73,15 +73,35 @@ Fetches all artifacts created by recent workflow runs.
 ### **4️⃣ Code Node — Pick Latest Artifact**
 
 ```js
-const items = $json.artifacts;
-items.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+// Extract the JSON payload returned from the previous HTTP Request node
+const data = items[0].json;
 
-return [{
-  artifact_id: items[0].id,
-  artifact_name: items[0].name,
-  download_url: items[0].archive_download_url,
-  created_at: items[0].created_at
-}];
+// GitHub API response structure: { total_count, artifacts: [...] }
+const artifacts = data.artifacts || [];
+
+// If no artifacts exist, stop the workflow by returning an empty array
+if (artifacts.length === 0) {
+	return [];
+}
+
+// Sort artifacts by creation date (newest first)
+artifacts.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+// Select the most recent artifact
+const latest = artifacts[0];
+
+// Return only the latest artifact fields needed for download
+return [
+	{
+		json: {
+			artifact_id: latest.id,
+			artifact_name: latest.name,
+			download_url: latest.archive_download_url,
+			created_at: latest.created_at
+		}
+	}
+];
+
 ```
 
 This ensures **the most recent Excel file** is always selected.
