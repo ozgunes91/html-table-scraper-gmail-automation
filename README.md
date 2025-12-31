@@ -1,3 +1,18 @@
+<div align="center">
+
+# 🚀 **HTML Table Scraper → Excel Generator → Email Automation**
+### **Python · GitHub Actions · n8n · CI/CD · Automated Reporting Pipeline**
+
+![Status](https://img.shields.io/badge/Status-Production_GRADE-brightgreen?style=for-the-badge)
+![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge)
+![GitHub Actions](https://img.shields.io/badge/GitHub-Actions-black?style=for-the-badge)
+![n8n](https://img.shields.io/badge/n8n-Automation-orange?style=for-the-badge)
+![Excel](https://img.shields.io/badge/Excel-Reports-success?style=for-the-badge)
+
+</div>
+
+---
+
 # HTML Table Scraper → Excel Generator → Email Automation  
 *A small, end-to-end automation pipeline built with Python, GitHub Actions and n8n.*
 
@@ -246,3 +261,12 @@ Produces:
 
 **Özge Güneş**  
 Automation • Python • Web Scraping • Data Cleaning • Workflow Design
+
+---
+
+<div align="center">
+
+### ⭐ **If you like this automation pipeline, consider starring the repository!**  
+Built with precision by **Özge Güneş**
+
+</div>
