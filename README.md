@@ -13,187 +13,157 @@
 
 ---
 
-# HTML Table Scraper → Excel Generator → Email Automation  
-*A small, end-to-end automation pipeline built with Python, GitHub Actions and n8n.*
+# 📌 Project Overview
 
----
+This project performs **end‑to‑end automated web data extraction**, **data cleaning**, **Excel generation**, and **email delivery**, with optional **GitHub Actions CI/CD** and **n8n orchestration**.
 
-## 🧩 Project Story
+It demonstrates a multi‑environment automation architecture:
 
-This project was created to automatically extract an HTML table from the web, clean it, convert it into a polished Excel file, and make it easily deliverable through different automation channels.
-
-The goal is simple:
-
-**“Fetch data → Clean it → Convert to Excel → Deliver it — with one click or fully automated.”**
-
-The pipeline demonstrates a modular structure that can adapt to multiple execution styles depending on user needs.
-
----
-
-## ⚙️ Core Methodology
-
-This automation consists of three independent but compatible components:
-
-1. **Python script**  
-   - Scrapes an HTML table  
-   - Cleans and normalizes the data  
-   - Converts it into Excel  
-   - Sends the Excel via Gmail (if credentials are configured)
-
-2. **GitHub Actions workflow**  
-   - Executes the same Python script in a clean cloud environment  
-   - Publishes the resulting Excel as an Artifact  
-   - Can be triggered manually from the Actions tab
-
-3. **n8n workflow**  
-   - Can trigger the GitHub Actions workflow  
-   - Downloads the latest Excel artifact  
-   - Makes the Excel file downloadable inside n8n  
-   - Optionally emails the file again  
-   - Can run on a schedule (e.g., daily delivery)
-
-This gives flexibility for different user types:
-- Developers → use GitHub Actions  
-- Non-technical users → use n8n  
-- Local testing → run Python script directly
+### ✔ Local Python execution  
+### ✔ GitHub Actions cloud execution  
+### ✔ n8n workflow orchestration (manual or scheduled)
 
 ---
 
 # 🧠 Architecture Overview
 
-```
-Wikipedia Page
-        │
-        ▼
-  Python Script
-  (scrape → parse → clean → Excel → email)
-        │
-        │  (optional: triggered in the cloud)
-        ▼
- GitHub Actions Workflow
-  - Runs python script
-  - Publishes Excel as Artifact
-        │
-        ▼
-        n8n
-  - Triggers workflow (manual or scheduled)
-  - Fetches latest Artifact
-  - Downloads Excel
-  - Sends email (optional)
-  - Exposes Excel as downloadable output
-```
+## **1 — Data Processing Pipeline**
 
-This architecture matches **exactly** how the project works in reality.
+```text
+Wikipedia Page
+     ↓
+Python Script
+(scrape → clean → Excel → email)
+     ↓
+Excel Output (.xlsx)
+     ↓
+Email Delivery (if SMTP configured)
+```
 
 ---
 
-# 🐍 1. Python Script (Real Functional Steps)
+## **2 — Complete Orchestration Pipeline (n8n → GitHub → Python → n8n)**
 
-File: `html_table_scraper.py`  
-A fully functional pipeline consisting of 5 real stages:
+```text
+n8n Trigger (Cron or Manual)
+     ↓
+HTTP Request → GitHub Actions (workflow_dispatch)
+     ↓
+GitHub Actions
+  - Install dependencies
+  - Run Python script in cloud
+  - Upload Excel as artifact
+  - Email sent by Python script
+     ↓
+Artifact Storage (GitHub)
+     ↓
+n8n
+  - List artifacts
+  - Pick latest
+  - Download binary (Excel)
+```
 
-### ✔ 1. Fetch HTML  
-- Uses `requests`  
-- Custom User-Agent + timeout for reliability  
-- Downloads raw HTML from the Wikipedia page
+This is the **real execution order**, matching actual behavior exactly.
 
-### ✔ 2. Parse first HTML `<table>`  
-- `BeautifulSoup` locates the table  
-- `pandas.read_html` parses it into a DataFrame
+---
 
-### ✔ 3. Clean the DataFrame  
-The script performs **real cleaning logic**:
+# 🐍 Python Script — Full Feature Breakdown
 
-- Flattens MultiIndex columns  
-- Normalizes column names  
-- Renames messy technical names to human-friendly ones  
-  - `revenue_usd_in_millions` → `revenue_usd_million`  
-  - `employees_employees` → `employees`  
-  - `headquartersnote_1` → `headquarters`
-- Removes “unnamed” columns  
-- Drops blank rows  
-- Removes optional columns (`state_owned`, `reference`) if present  
-- Sorts by `rank` column when available  
+The Python script (`html_table_scraper.py`) performs 5 fully automated steps:
 
-### ✔ 4. Save Excel  
-Saves the cleaned DataFrame automatically to:
+---
+
+## **1️⃣ Download HTML Page**
+- Uses `requests` with custom headers  
+- Fetches a Wikipedia table page  
+- Includes timeout & error handling  
+
+---
+
+## **2️⃣ Parse First HTML Table**
+- `BeautifulSoup` selects the table  
+- `pandas.read_html()` converts it to a DataFrame  
+- Handles multi‑index columns  
+
+---
+
+## **3️⃣ Data Cleaning**
+✔ Flattens multi‑index column headers  
+✔ Normalizes column names  
+✔ Renames technical columns:  
+- `revenue_usd_in_millions` → `revenue_usd_million`  
+- `employees_employees` → `employees`  
+- `headquartersnote_1` → `headquarters`
+
+✔ Removes:  
+- unnamed columns  
+- empty rows  
+- irrelevant metadata columns (state-owned, reference)  
+
+✔ Automatically sorts by `rank`
+
+This results in a clean, analysis‑ready dataset.
+
+---
+
+## **4️⃣ Save Excel Output**
+
+Excel is exported to:
 
 ```
 outputs/largest_companies_by_revenue.xlsx
 ```
 
-### ✔ 5. Gmail Email Send  
-- Uses `smtp.gmail.com:587`  
-- Loads credentials from `.env`  
-- If credentials missing → prints warning and skips email  
-- Otherwise → sends the Excel file as an email attachment
+---
 
-The script alone provides a complete “scrape → clean → Excel → email” pipeline.
+## **5️⃣ Email Delivery (SMTP Gmail)**
+
+If `.env` contains valid Gmail App Password credentials:
+
+- The script generates an email  
+- Attaches the Excel file  
+- Sends it via Gmail SMTP  
+
+👉 If SMTP not configured, the script skips email gracefully.
 
 ---
 
-# 🟦 2. GitHub Actions Workflow (automation.yml)
+# 🟦 GitHub Actions Workflow
 
-The repository includes:
+File: `.github/workflows/automation.yml`
 
-```
-.github/workflows/automation.yml
-```
+GitHub Actions provides:
 
-This workflow:
+✔ Cloud execution  
+✔ Dependency isolation  
+✔ Reproducibility  
+✔ Secure secrets management  
+✔ Artifact generation  
 
-- Installs Python + dependencies  
-- Runs the same Python script in the cloud  
-- Generates the Excel file  
-- Publishes it as a **GitHub Artifact**  
-- Is triggered manually via **Run workflow**  
-- Does **not** include cron (optional)
+Steps:
 
-This makes the pipeline reproducible and cloud-ready.
+1. Setup Python  
+2. Install requirements  
+3. Run the scraper script  
+4. Email is sent by Python  
+5. Excel is uploaded as a GitHub Artifact  
 
----
-
-# 🟩 3. n8n Workflow
-
-Stored under `docs/html-table-scraper-gmail-automation.json`.
-
-The real n8n workflow performs:
-
-1. Triggers the GitHub Actions workflow (workflow_dispatch)  
-2. Retrieves the list of artifacts from the GitHub API  
-3. Selects the **latest artifact** via a Code node  
-4. Downloads the Excel artifact  
-5. Optionally emails it via Gmail node  
-6. Makes the file downloadable inside n8n  
-7. Supports scheduled runs (Cron)
-
-This provides a no-code UI for automated report delivery.
+This allows fully cloud‑based automation without local execution.
 
 ---
 
-# 🔧 Execution Options (Flexible by Design)
+# 🔁 n8n Integration (High‑Level Summary)
 
-This pipeline intentionally supports **three execution styles**:
+n8n provides:
 
-### **1) Local Python run**
-```bash
-python html_table_scraper.py
-```
-Scrapes → cleans → exports → emails.
+- **Manual execution**
+- **Scheduled execution (cron)**
+- **Triggering GitHub Actions via HTTP**
+- **Downloading the latest artifact**
+- **UI‑based binary download**
 
-### **2) GitHub Actions (manual trigger)**
-From the Actions tab:
-- Click **Run workflow**  
-- The workflow runs the script in CI and uploads the Excel as an artifact.
-
-### **3) n8n workflow**
-- Can run on a schedule (daily)  
-- Can run manually (single click)  
-- Automatically fetches the latest Excel artifact  
-- Can email the Excel again  
-- Allows direct downloading in the n8n UI
-
-All three methods produce the **same Excel output**.
+n8n **does not send email** in this project;  
+email is always handled by the Python script.
 
 ---
 
@@ -202,18 +172,16 @@ All three methods produce the **same Excel output**.
 ```
 html-table-scraper-gmail-automation/
 │
-├── html_table_scraper.py               # scrape → clean → Excel → email
-├── requirements.txt                    # Python dependencies
-├── README.md                           # Main documentation
+├── html_table_scraper.py
+├── requirements.txt
+├── README.md
 │
 ├── outputs/
-│   └── largest_companies_by_revenue.xlsx   # Real Excel output
-│
-├── .env (not committed)                # Local SMTP credentials
+│   └── largest_companies_by_revenue.xlsx
 │
 ├── .github/
 │   └── workflows/
-│       └── automation.yml              # GitHub Actions workflow
+│       └── automation.yml
 │
 └── docs/
     ├── README_N8N.md
@@ -223,50 +191,42 @@ html-table-scraper-gmail-automation/
 
 ---
 
-# ▶️ Local Usage
+# ▶️ How to Run Locally
 
-### 1. Install dependencies
-```bash
+### 1. Install requirements
+```
 pip install -r requirements.txt
 ```
 
-### 2. Add `.env`
-```env
+### 2. Add `.env` file
+```
 SCRAPER_SMTP_USER=your_email@gmail.com
 SCRAPER_SMTP_PASSWORD=your_app_password
 ```
 
-### 3. Run script
-```bash
+### 3. Run the script
+```
 python html_table_scraper.py
 ```
 
-Produces:
+---
 
-- Excel under `outputs/`  
-- Email (if SMTP configured)
+# 🧩 Execution Options Summary
+
+| Method | Sends Email | Generates Excel | Stores Artifact | Requires Setup |
+|--------|-------------|-----------------|-----------------|----------------|
+| Local Python | ✅ | ✅ | ❌ | `.env` for SMTP |
+| GitHub Actions | ✅ | ✅ | ✅ | GitHub Secrets |
+| n8n | (via Python) | (via Python) | Download available | GitHub token |
 
 ---
 
-# 🐾 Notes
-
-- Do **not** commit your `.env`  
-- Gmail requires an **App Password**  
-- n8n always retrieves the latest artifact  
-- GitHub Actions run is manual, but scheduling can be added if needed
-
----
-
-# 👩‍💻 Author
-
+# 👩‍💻 Author  
 **Özge Güneş**  
-Automation • Python • Web Scraping • Data Cleaning • Workflow Design
-
----
+Automation • Python • Workflow Engineering  
 
 <div align="center">
 
-### ⭐ **If you like this automation pipeline, consider starring the repository!**  
-Built with precision by **Özge Güneş**
+### ⭐ *If this project helps you, consider starring the repository!*
 
 </div>
